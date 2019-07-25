@@ -14,13 +14,21 @@ var es = require('event-stream');
 
 var clean = require('gulp-clean');
 
+var fileInclude = require('gulp-file-include');
+
+var webServer = require('gulp-webserver');
+
 gulp.task('clean', async() => {
     return gulp.src('dist', { read: false }).pipe(clean());
 })
 
 gulp.task('html', async () => {
     console.log('gulp_starting...html');
-    gulp.src('src/html/*.html')
+    gulp.src(['src/html/*.html', '!src/html/include/*.html'])
+        .pipe(fileInclude({
+            prefix: '@@',
+            basepath: '@file',
+        }))
         .pipe(minifyHtml())
         .pipe(gulp.dest('dist/html'));
 });
@@ -100,3 +108,12 @@ gulp.task('build', gulp.parallel('html', 'js', 'scss', async() => {
 }))
 
 // gulp.task('default', gulp.series('clean', gulp.parallel('build')))
+
+gulp.task('server', async() => {
+    gulp.src('dist/html')
+        .pipe(webServer({
+            livereload: true,
+            open: true,
+            port: 3000,
+        }))
+})
